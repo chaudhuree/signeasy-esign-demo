@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 200px;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 1rem;
+            display: none;
+        }
+        .loading {
+            display: none;
+            margin-top: 1rem;
+        }
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Download Document</h2>
+        <div class="form-group">
+            <label for="signedId">Signed Document ID</label>
+            <input type="text" id="signedId" placeholder="Enter Signed Document ID" required>
+            <p class="info-text">Enter the ID of your signed document</p>
+        </div>
+        <button onclick="downloadDocument()" id="downloadBtn">Download Signed Document</button>
+        <div id="loading" class="loading">Downloading...</div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+        async function downloadDocument() {
+            const signedId = document.getElementById('signedId').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loading = document.getElementById('loading');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            if (!signedId) {
+                errorMessage.textContent = 'Please enter a signed document ID';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                errorMessage.style.display = 'none';
+                downloadBtn.disabled = true;
+                loading.style.display = 'block';
+
+                const response = await fetch(`/api/docs/download/merged/${signedId}`);
+                
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to download document');
+                }
+                
+                if (!response.ok) {
+                    throw new Error('Failed to download document');
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `signed_document_${signedId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(downloadUrl);
+                document.body.removeChild(a);
+                errorMessage.style.display = 'none';
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            } finally {
+                downloadBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
