@@ -138,4 +138,7 @@ Required environment variables:
 ```
 SIGNEASY_ACCESS_TOKEN=your_access_token
 DATABASE=your_database_connection_string
-PORT=8000 (default)
+PORT=4000 (default)
+```
+## To download signed document
+ ### run on browser : http://localhost:4000/download
