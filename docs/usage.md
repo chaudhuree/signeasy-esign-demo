@@ -8,130 +8,27 @@ This application demonstrates integration with SignEasy's API for document signi
 - Send documents for signature
 - Download signed documents
 
-## API Endpoints
+## API workflow
+- first it has to call the api add-doc. this is for adding a document in the database. it has nothing to do with signeasy.
+- like giving a payement value and some king of id such that invoice id or order id
+- with this data , add-doc will create a document in the database.
+---
+- then in next we will upload the document.
+- this will have in body, x,y,file and mongodb schema id in which the add-doc stored the document.
+- after uploading it will give a orginalId , and it will be stored in the previously creaded doc's model. just after upload is done it will return the id. then with the schema id
+- which we have sent through the body , will use it to update the doc with the original id.
 
-### Document Upload
-```
-POST /api/docs/upload
-```
-Upload a new document to SignEasy.
+---
+- then we will do another api cal to send envelope.```/send-envelope```
+- this will return a pending id and a url
+- we will send this url by email or directly.
 
-**Request:**
-- Content-Type: multipart/form-data
-- Body: file (PDF document)
+- user will sign this document and confirm this to the client.
 
-**Response:**
-```json
-{
-    "success": true,
-    "data": {
-        "originalId": "string",
-        "name": "string"
-    }
-}
-```
+---
 
-### Add Document
-```
-POST /api/docs/add-doc
-```
-Add document details to the system.
-
-**Request:**
-```json
-{
-    "originalId": "string",
-    "name": "string"
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "message": "Document added successfully"
-}
-```
-
-### Send Envelope
-```
-POST /api/docs/send-envelope
-```
-Send a document for signing.
-
-**Request:**
-```json
-{
-    "originalId": "string",
-    "recipient": {
-        "name": "string",
-        "email": "string"
-    }
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "data": {
-        "envelopeId": "string"
-    }
-}
-```
-
-### Get Signed ID
-```
-POST /api/docs/get-signed-id
-```
-Retrieve the signed document ID.
-
-**Request:**
-```json
-{
-    "originalId": "string"
-}
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "data": {
-        "signedId": "string"
-    }
-}
-```
-
-### Download Signed Document
-```
-GET /api/docs/download/merged/:signed_id
-```
-Download a signed document.
-
-**Parameters:**
-- signed_id: ID of the signed document
-
-**Response:**
-- Content-Type: application/pdf
-- Binary PDF file
-
-## Web Interface
-
-### Document Download Page
-Access the document download interface at `/download`. This page provides a simple interface to:
-1. Enter the signed document ID
-2. Download the signed document
-
-**Required Information:**
-- Signed Document ID
-
-## Error Handling
-The API returns appropriate HTTP status codes and error messages:
-- 400: Bad Request (missing or invalid parameters)
-- 401: Unauthorized (invalid API token)
-- 404: Not Found (document not found)
-- 500: Internal Server Error
+- then if user send a request with the pending id he will get a signed id.```/get-signed-id```
+- now if user hit the download endpoint using this id , he will able to download the signed document.
 
 ## Environment Variables
 Required environment variables:
